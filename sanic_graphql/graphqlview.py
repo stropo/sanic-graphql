@@ -103,12 +103,13 @@ class GraphQLView(HTTPMethodView):
                 )
                 awaited_execution_results = await Promise.all(execution_results)
 
-                errors = awaited_execution_results[0].errors
-                if errors:
-                    try:
-                        raise errors[0].original_error
-                    except Exception as e:
-                        logger.exception(str(e))
+                for execution_result in awaited_execution_results:
+                    errors = getattr(execution_result, 'errors', None)
+                    if errors:
+                        try:
+                            raise errors[0].original_error
+                        except Exception as e:
+                            logger.exception(str(e))
 
                 result, status_code = encode_execution_results(
                     awaited_execution_results,
