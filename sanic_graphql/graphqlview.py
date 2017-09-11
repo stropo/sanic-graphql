@@ -1,3 +1,4 @@
+import logging
 from functools import partial
 from cgi import parse_header
 
@@ -13,6 +14,9 @@ from graphql_server import (HttpQueryError, default_format_error,
                             load_json_body, run_http_query)
 
 from .render_graphiql import render_graphiql
+
+
+logger = logging.getLogger('sanic')
 
 
 class GraphQLView(HTTPMethodView):
@@ -98,6 +102,14 @@ class GraphQLView(HTTPMethodView):
                     executor=self.get_executor(request),
                 )
                 awaited_execution_results = await Promise.all(execution_results)
+
+                errors = awaited_execution_results[0].errors
+                if errors:
+                    try:
+                        raise errors[0].original_error
+                    except Exception as e:
+                        logger.exception(str(e))
+
                 result, status_code = encode_execution_results(
                     awaited_execution_results,
                     is_batch=isinstance(data, list),
