@@ -72,7 +72,23 @@ class GraphQLView(HTTPMethodView):
             graphiql_template=self.graphiql_template,
         )
 
-    format_error = staticmethod(default_format_error)
+    @staticmethod
+    def format_error(error):
+        # return default_format_error(error)
+        formatted_error = {
+            'message': str(error),
+            'type': 'SERVER_ERROR'
+        }
+
+        if error.nodes:
+            formatted_error['path'] = [(node.alias or node.name).value for node in error.nodes]
+
+        for error_attr in ['type', 'state']:
+            if hasattr(error.original_error, error_attr):
+                formatted_error[error_attr] = getattr(error.original_error, error_attr)
+
+        return formatted_error
+
     encode = staticmethod(json_encode)
 
     async def dispatch_request(self, request, *args, **kwargs):
