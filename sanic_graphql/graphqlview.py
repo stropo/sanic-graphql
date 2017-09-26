@@ -81,11 +81,12 @@ class GraphQLView(HTTPMethodView):
         }
 
         if error.nodes:
-            formatted_error['path'] = [(node.alias or node.name).value for node in error.nodes]
+            formatted_error['path'] = [(getattr(node, 'alias', None) or node.name).value for node in error.nodes]
 
-        for error_attr in ['type', 'state']:
-            if hasattr(error.original_error, error_attr):
-                formatted_error[error_attr] = getattr(error.original_error, error_attr)
+        if hasattr(error, 'original_error'):
+            for error_attr in ['type', 'state']:
+                if hasattr(error.original_error, error_attr):
+                    formatted_error[error_attr] = getattr(error.original_error, error_attr)
 
         return formatted_error
 
@@ -121,7 +122,7 @@ class GraphQLView(HTTPMethodView):
 
                 for execution_result in awaited_execution_results:
                     errors = getattr(execution_result, 'errors', None)
-                    if errors:
+                    if errors and hasattr(errors[0], 'original_error'):
                         try:
                             raise errors[0].original_error
                         except Exception as e:
