@@ -77,7 +77,7 @@ class GraphQLView(HTTPMethodView):
         # return default_format_error(error)
         formatted_error = {
             'message': str(error),
-            'type': 'SERVER_ERROR'
+            'type': 'SERVER_ERROR',
             'path': [],
         }
 
