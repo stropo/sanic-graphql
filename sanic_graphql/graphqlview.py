@@ -83,7 +83,7 @@ class GraphQLView(HTTPMethodView):
 
         if error.nodes:
             for node in error.nodes:
-                node_name = getattr(node, 'alias', None) or node.name
+                node_name = getattr(node, 'alias', None) or getattr(node, 'name', None)
                 if hasattr(node_name, 'value'):
                     formatted_error['path'].append(node_name.value)
 
