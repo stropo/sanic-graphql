@@ -78,10 +78,14 @@ class GraphQLView(HTTPMethodView):
         formatted_error = {
             'message': str(error),
             'type': 'SERVER_ERROR'
+            'path': [],
         }
 
         if error.nodes:
-            formatted_error['path'] = [(getattr(node, 'alias', None) or node.name).value for node in error.nodes]
+            for node in error.nodes:
+                node_name = getattr(node, 'alias', None) or node.name
+                if hasattr(node_name, 'value'):
+                    formatted_error['path'].append(node_name.value)
 
         if hasattr(error, 'original_error'):
             for error_attr in ['type', 'state']:
